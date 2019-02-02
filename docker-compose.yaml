@@ -14,7 +14,7 @@ services:
       - "discovery.zen.ping.unicast.hosts=elasticsearch"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes: 
-      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - esdata:/usr/share/elasticsearch/data
     ulimits:
       memlock:
         soft: -1
@@ -65,6 +65,10 @@ services:
     depends_on:
       - logstash
 
+volumes:
+  esdata:
+    driver: local
+    
 networks:
   elk:
     driver: bridge
