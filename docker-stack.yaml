@@ -2,94 +2,6 @@ version: '3.3'
 
 services:
 
-  elasticsearch:
-    image: reg.gitlab.itnap.ru/docker/elastic/elasticsearch
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-      placement:
-        constraints:
-          - "node.role == manager"
-      restart_policy:
-        condition: on-failure
-      labels:
-        com.docker.service.name: elasticsearch
-        com.docker.stack.name: elk
-      mode: replicated
-      replicas: 1
-    labels:
-      com.docker.service.name: elasticsearch
-      com.docker.stack.name: elk
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    environment:
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-    volumes:
-      - /var/lib/elasticsearch:/usr/share/elasticsearch/data
-    command:
-      - "elasticsearch"
-      - "-Ecluster.name=elk"
-      - "-Ediscovery.zen.ping.unicast.hosts=elasticsearch"
-      - "-Ediscovery.zen.minimum_master_nodes=1"
-    networks:
-      - elk
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash-oss:6.6.0
-    deploy:
-      placement:
-        constraints:
-          - "node.role == manager"
-      restart_policy:
-        condition: on-failure
-      labels:
-        com.docker.service.name: logstash
-        com.docker.stack.name: elk
-      mode: replicated
-      replicas: 1
-    labels:
-      com.docker.service.name: logstash
-      com.docker.stack.name: elk
-    ports:
-      - "5044:5044"
-      - "9600:9600"
-    environment:
-      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
-    configs:
-      - source: logstash_config
-        target: /usr/share/logstash/config/logstash.yml
-      - source: logstash_pipeline
-        target: /usr/share/logstash/pipeline/logstash.conf
-    networks:
-      - elk
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.6.0
-    deploy:
-      placement:
-        constraints:
-          - "node.role == manager"
-      restart_policy:
-        condition: on-failure
-      labels:
-        com.docker.service.name: kibana
-        com.docker.stack.name: elk
-      mode: replicated
-      replicas: 1
-    labels:
-      com.docker.service.name: kibana
-      com.docker.stack.name: elk
-    ports:
-      - "5601:5601"
-    environment:
-      - "server.name=kibana"
-      - "server.host=0"
-      - "elasticsearch.hosts=http://elasticsearch:9200"
-    networks:
-      - elk
-
   filebeat:
     user: root
     image: docker.elastic.co/beats/filebeat-oss:6.6.0
@@ -114,10 +26,6 @@ services:
       - elk
 
 configs:
-  logstash_config:
-    file: ./logstash/config/logstash.yml
-  logstash_pipeline:
-    file: ./logstash/pipeline/logstash.conf
   filebeat_config:
     file: ./filebeat/config/filebeat.yml
 
