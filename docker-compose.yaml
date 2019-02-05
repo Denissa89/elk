@@ -3,6 +3,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
     container_name: elasticsearch
+    restart: always
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -13,7 +14,7 @@ services:
       - "discovery.zen.minimum_master_nodes=1"
       - "discovery.zen.ping.unicast.hosts=elasticsearch"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    volumes: 
+    volumes:
       - esdata:/usr/share/elasticsearch/data
     ulimits:
       memlock:
@@ -25,6 +26,7 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash-oss:6.6.0
     container_name: logstash
+    restart: always
     ports:
       - "5044:5044"
       - "9600:9600"
@@ -41,8 +43,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:6.6.0
     container_name: kibana
-    ports:
-      - "5601:5601"
+    restart: always
     environment:
       - "server.name=kibana"
       - "server.host=0"
@@ -56,6 +57,7 @@ services:
     user: root
     image: docker.elastic.co/beats/filebeat-oss:6.6.0
     container_name: filebeat
+    restart: always
     volumes:
       - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -65,10 +67,24 @@ services:
     depends_on:
       - logstash
 
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/config/:/etc/nginx/conf.d/:ro
+      - ./nginx/config/.htpasswd:/etc/nginx/.htpasswd:ro
+    networks:
+      - elk
+    depends_on:
+      - kibana
+
 volumes:
   esdata:
     driver: local
-    
+
 networks:
   elk:
     driver: bridge
