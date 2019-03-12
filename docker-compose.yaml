@@ -82,8 +82,7 @@ services:
       - kibana
 
   curator:
-    build:
-      context: .
+    image: reg.gitlab.itnap.ru/docker/curator:0.1.0
     container_name: curator
     restart: always
     environment:
